@@ -8,12 +8,14 @@ import "@/assets/styles/tailwind.css";
 import "@/components/Settings/Settings.css";
 import { useNotifications } from "@/hooks";
 import Link from "@/src/components/Link";
+import SettingSearch from "@/src/components/Settings/components/SettingSearch";
 import { deepDarkPreset } from "@/src/deepDarkPresets";
-import { availableLocales, type i18nInstanceType, i18nService, localeDirection, localePercentages } from "@/src/i18n";
+import { type i18nInstanceType, i18nService } from "@/src/i18n";
+import { availableLocales, localeDirection, localePercentages } from "@/src/i18n/constants";
 import { buttonNames, youtubePlaybackSpeedButtonsRates, youtubePlayerSpeedRates } from "@/src/types";
 import { configurationImportSchema, defaultConfiguration as defaultSettings } from "@/src/utils/constants";
 import { updateStoredSettings } from "@/src/utils/updateStoredSettings";
-import { cn, deepMerge, formatDateForFileName, getPathValue, parseStoredValue } from "@/src/utils/utilities";
+import { cn, deepMerge, formatDateForFileName, getPathValue, isButtonSelectDisabled, parseStoredValue } from "@/src/utils/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Suspense, createContext, useContext, useEffect, useRef, useState } from "react";
 import { MdOutlineOpenInNew } from "react-icons/md";
@@ -72,8 +74,8 @@ function LanguageOptions({
 		})();
 	}, []);
 	return (
-		<SettingSection>
-			<SettingTitle title={t("settings.sections.language.title")} />
+		<SettingSection title={t("settings.sections.language.title")}>
+			<SettingTitle />
 			<Setting
 				disabled={false}
 				id="language"
@@ -120,8 +122,8 @@ async function setSettings(settings: configuration) {
 			localStorage.setItem(key, JSON.stringify(settings[key]));
 			await chrome.storage.local.set({ [key]: JSON.stringify(settings[key]) });
 		} else {
-			localStorage.setItem(key, settings[key] as string);
-			await chrome.storage.local.set({ [key]: settings[key] as string });
+			localStorage.setItem(key, settings[key]);
+			await chrome.storage.local.set({ [key]: settings[key] });
 		}
 	}
 }
@@ -143,7 +145,6 @@ export default function Settings() {
 	const [i18nInstance, setI18nInstance] = useState<Nullable<i18nInstanceType>>(null);
 	const settingsImportRef = useRef<HTMLInputElement>(null);
 	const { addNotification, notifications, removeNotification } = useNotifications();
-
 	useEffect(() => {
 		if (settings && settings["language"]) {
 			void (async () => {
@@ -203,8 +204,8 @@ export default function Settings() {
 					localStorage.setItem(key, JSON.stringify(defaultSettings[key]));
 					void chrome.storage.local.set({ [key]: JSON.stringify(defaultSettings[key]) });
 				} else {
-					localStorage.setItem(key, defaultSettings[key] as string);
-					void chrome.storage.local.set({ [key]: defaultSettings[key] as string });
+					localStorage.setItem(key, defaultSettings[key]);
+					void chrome.storage.local.set({ [key]: defaultSettings[key] });
 				}
 			}
 			addNotification("success", "settings.clearData.allDataDeleted");
@@ -328,6 +329,16 @@ export default function Settings() {
 		{ label: "auto", value: "auto" }
 		// This cast is here because otherwise it would require marking all the options 'as const'
 	].reverse() as SelectOption<"player_quality">[];
+	const PlayerQualityFallbackStrategyOptions = [
+		{
+			label: t("settings.sections.automaticQuality.fallbackQualityStrategy.select.options.higher"),
+			value: "higher"
+		},
+		{
+			label: t("settings.sections.automaticQuality.fallbackQualityStrategy.select.options.lower"),
+			value: "lower"
+		}
+	] as SelectOption<"player_quality_fallback_strategy">[];
 	const YouTubePlayerSpeedOptions = youtubePlayerSpeedRates.map((rate) => ({
 		label: rate?.toString(),
 		value: rate?.toString()
@@ -358,11 +369,15 @@ export default function Settings() {
 		}
 	];
 	const buttonPlacementOptions: SelectOption<
+		| "button_placements.copyTimestampUrlButton"
 		| "button_placements.decreasePlaybackSpeedButton"
+		| "button_placements.forwardButton"
+		| "button_placements.hideEndScreenCardsButton"
 		| "button_placements.increasePlaybackSpeedButton"
 		| "button_placements.loopButton"
 		| "button_placements.maximizePlayerButton"
 		| "button_placements.openTranscriptButton"
+		| "button_placements.rewindButton"
 		| "button_placements.screenshotButton"
 		| "button_placements.volumeBoostButton"
 	>[] = [
@@ -393,6 +408,26 @@ export default function Settings() {
 			value
 		};
 	});
+	const playlistLengthGetMethodOptions: SelectOption<"playlist_length_get_method">[] = [
+		{
+			label: "API",
+			value: "api"
+		},
+		{
+			label: "HTML",
+			value: "html"
+		}
+	];
+	const playlistWatchTimeGetMethodOptions: SelectOption<"playlist_watch_time_get_method">[] = [
+		{
+			label: t("settings.sections.playlistLength.wayToGetWatchTime.select.options.duration"),
+			value: "duration"
+		},
+		{
+			label: t("settings.sections.playlistLength.wayToGetWatchTime.select.options.youtube"),
+			value: "youtube"
+		}
+	];
 	const settingsImportChange: ChangeEventHandler<HTMLInputElement> = (event): void => {
 		void (async () => {
 			const { target } = event;
@@ -420,8 +455,8 @@ export default function Settings() {
 								localStorage.setItem(key, JSON.stringify(castSettings[key]));
 								void chrome.storage.local.set({ [key]: JSON.stringify(castSettings[key]) });
 							} else {
-								localStorage.setItem(key, castSettings[key] as string);
-								void chrome.storage.local.set({ [key]: castSettings[key] as string });
+								localStorage.setItem(key, castSettings[key]);
+								void chrome.storage.local.set({ [key]: castSettings[key] });
 							}
 						}
 						await updateStoredSettings();
@@ -496,16 +531,19 @@ export default function Settings() {
 	return (
 		<SettingsContext.Provider value={{ direction: localeDirection[settings.language], i18nInstance, settings }}>
 			<div className="h-fit w-fit bg-[#f5f5f5] text-black dark:multi-['bg-[#181a1b];text-white']" dir={localeDirection[settings.language]}>
-				<h1 className="flex content-center items-center gap-3 text-xl font-bold sm:text-2xl md:text-3xl" dir={"ltr"}>
-					<img className="h-16 w-16" src="/icons/icon_128.png" />
-					YouTube Enhancer
-					<small className="light text-xs sm:text-sm md:text-base">v{chrome.runtime.getManifest().version}</small>
-				</h1>
+				<div className="sticky left-0 top-0 z-10 flex flex-col justify-between gap-1 bg-[#f5f5f5] dark:bg-[#181a1b]">
+					<h1 className="flex content-center items-center gap-3 text-xl font-bold sm:text-2xl md:text-3xl" dir={"ltr"}>
+						<img className="h-16 w-16" src="/icons/icon_128.png" />
+						YouTube Enhancer
+						<small className="light text-xs sm:text-sm md:text-base">v{chrome.runtime.getManifest().version}</small>
+					</h1>
+					<SettingSearch i18nInstance={i18nInstance} />
+				</div>
 				<Suspense fallback={<Loader />}>
 					<LanguageOptions selectedLanguage={settings["language"]} setValueOption={setValueOption} t={i18nInstance.t} />
 				</Suspense>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.featureMenu.openType.title")} />
+				<SettingSection title={t("settings.sections.featureMenu.openType.title")}>
+					<SettingTitle />
 					<Setting
 						disabled={Object.values(settings.button_placements).every((v) => v !== "feature_menu")}
 						id="feature_menu_open_type"
@@ -520,17 +558,36 @@ export default function Settings() {
 						type="select"
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.buttonPlacement.title")} />
+				<SettingSection title={t("settings.sections.buttonPlacement.title")}>
+					<SettingTitle />
 					{buttonNames.map((feature) => {
-						const label = t(`settings.sections.buttonPlacement.select.buttonNames.${feature}`) as string;
+						const label = t(`settings.sections.buttonPlacement.select.buttonNames.${feature}`);
 						return (
 							<Setting
+								disabled={isButtonSelectDisabled(feature, settings)}
 								// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 								id={`button_placements.${feature}` as `button_placements.${AllButtonNames}`}
 								key={feature}
 								label={label}
-								onChange={setValueOption(`button_placements.${feature}`)}
+								onChange={(change) => {
+									switch (feature) {
+										case "decreasePlaybackSpeedButton":
+										case "increasePlaybackSpeedButton": {
+											setValueOption(`button_placements.decreasePlaybackSpeedButton`)(change);
+											// Timeout required otherwise the button won't work
+											setTimeout(() => setValueOption(`button_placements.increasePlaybackSpeedButton`)(change), 25);
+											break;
+										}
+										case "forwardButton":
+										case "rewindButton": {
+											setValueOption(`button_placements.rewindButton`)(change);
+											setTimeout(() => setValueOption(`button_placements.forwardButton`)(change), 50);
+											break;
+										}
+										default:
+											setValueOption(`button_placements.${feature}`)(change);
+									}
+								}}
 								options={buttonPlacementOptions}
 								selectedOption={getSelectedOption(`button_placements.${feature}`)}
 								title={t(`settings.sections.buttonPlacement.select.title`, {
@@ -542,8 +599,8 @@ export default function Settings() {
 						);
 					})}
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.miscellaneous.title")} />
+				<SettingSection title={t("settings.sections.miscellaneous.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_remember_last_volume?.toString() === "true"}
 						id="enable_remember_last_volume"
@@ -582,6 +639,14 @@ export default function Settings() {
 						label={t("settings.sections.miscellaneous.features.loopButton.label")}
 						onChange={setCheckboxOption("enable_loop_button")}
 						title={t("settings.sections.miscellaneous.features.loopButton.title")}
+						type="checkbox"
+					/>
+					<Setting
+						checked={settings.enable_copy_timestamp_url_button?.toString() === "true"}
+						id="enable_copy_timestamp_url_button"
+						label={t("settings.sections.miscellaneous.features.copyTimestampUrlButton.label")}
+						onChange={setCheckboxOption("enable_copy_timestamp_url_button")}
+						title={t("settings.sections.miscellaneous.features.copyTimestampUrlButton.title")}
 						type="checkbox"
 					/>
 					<Setting
@@ -672,9 +737,33 @@ export default function Settings() {
 						title={t("settings.sections.miscellaneous.features.hideTranslateComment.title")}
 						type="checkbox"
 					/>
+					<Setting
+						checked={settings.enable_hide_end_screen_cards?.toString() === "true"}
+						id="enable_hide_end_screen_cards"
+						label={t("settings.sections.miscellaneous.features.hideEndScreenCards.label")}
+						onChange={setCheckboxOption("enable_hide_end_screen_cards")}
+						title={t("settings.sections.miscellaneous.features.hideEndScreenCards.title")}
+						type="checkbox"
+					/>
+					<Setting
+						checked={settings.enable_hide_end_screen_cards_button?.toString() === "true"}
+						id="enable_hide_end_screen_cards_button"
+						label={t("settings.sections.miscellaneous.features.hideEndScreenCardsButton.label")}
+						onChange={setCheckboxOption("enable_hide_end_screen_cards_button")}
+						title={t("settings.sections.miscellaneous.features.hideEndScreenCardsButton.title")}
+						type="checkbox"
+					/>
+					<Setting
+						checked={settings.enable_hide_paid_promotion_banner?.toString() === "true"}
+						id="enable_hide_paid_promotion_banner"
+						label={t("settings.sections.miscellaneous.features.hidePaidPromotionBanner.label")}
+						onChange={setCheckboxOption("enable_hide_paid_promotion_banner")}
+						title={t("settings.sections.miscellaneous.features.hidePaidPromotionBanner.title")}
+						type="checkbox"
+					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.videoHistory.title")} />
+				<SettingSection title={t("settings.sections.videoHistory.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_video_history?.toString() === "true"}
 						id="enable_video_history"
@@ -693,8 +782,8 @@ export default function Settings() {
 						type="select"
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.onScreenDisplaySettings.title")} />
+				<SettingSection title={t("settings.sections.onScreenDisplaySettings.title")}>
+					<SettingTitle />
 					<Setting
 						disabled={isOSDDisabled}
 						id="osd_display_color"
@@ -759,8 +848,8 @@ export default function Settings() {
 						value={settings.osd_display_padding}
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.scrollWheelSpeedControl.title")} />
+				<SettingSection title={t("settings.sections.scrollWheelSpeedControl.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_scroll_wheel_speed_control?.toString() === "true"}
 						id="enable_scroll_wheel_speed_control"
@@ -804,8 +893,8 @@ export default function Settings() {
 						value={settings.speed_adjustment_steps}
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.scrollWheelVolumeControl.title")} />
+				<SettingSection title={t("settings.sections.scrollWheelVolumeControl.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_scroll_wheel_volume_control?.toString() === "true"}
 						id="enable_scroll_wheel_volume_control"
@@ -863,8 +952,8 @@ export default function Settings() {
 						value={settings.volume_adjustment_steps}
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.automaticQuality.title")} />
+				<SettingSection title={t("settings.sections.automaticQuality.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_automatically_set_quality?.toString() === "true"}
 						id="enable_automatically_set_quality"
@@ -883,9 +972,19 @@ export default function Settings() {
 						title={t("settings.sections.automaticQuality.select.title")}
 						type="select"
 					/>
+					<Setting
+						disabled={settings.enable_automatically_set_quality?.toString() !== "true"}
+						id="player_quality_fallback_strategy"
+						label={t("settings.sections.automaticQuality.fallbackQualityStrategy.select.label")}
+						onChange={setValueOption("player_quality_fallback_strategy")}
+						options={PlayerQualityFallbackStrategyOptions}
+						selectedOption={getSelectedOption("player_quality_fallback_strategy")}
+						title={t("settings.sections.automaticQuality.fallbackQualityStrategy.select.title")}
+						type="select"
+					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.playbackSpeed.title")} />
+				<SettingSection title={t("settings.sections.playbackSpeed.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_forced_playback_speed?.toString() === "true"}
 						id="enable_forced_playback_speed"
@@ -923,8 +1022,8 @@ export default function Settings() {
 						type="select"
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.volumeBoost.title")} />
+				<SettingSection title={t("settings.sections.volumeBoost.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_volume_boost?.toString() === "true"}
 						id="enable_volume_boost"
@@ -955,8 +1054,8 @@ export default function Settings() {
 						value={settings.volume_boost_amount}
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.screenshotButton.title")} />
+				<SettingSection title={t("settings.sections.screenshotButton.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_screenshot_button?.toString() === "true"}
 						id="enable_screenshot_button"
@@ -986,18 +1085,38 @@ export default function Settings() {
 						type="select"
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.youtubeDeepDark.title")} />
-					<SettingSection className="flex flex-row gap-1">
-						<SettingSection className="mb-1">
-							<SettingTitle title={t("settings.sections.youtubeDeepDark.author")} />
+				<SettingSection title={t("settings.sections.forwardRewindButtons.title")}>
+					<SettingTitle />
+					<Setting
+						checked={settings.enable_forward_rewind_buttons?.toString() === "true"}
+						id="enable_forward_rewind_buttons"
+						label={t("settings.sections.forwardRewindButtons.enable.label")}
+						onChange={setCheckboxOption("enable_forward_rewind_buttons")}
+						title={t("settings.sections.forwardRewindButtons.enable.title")}
+						type="checkbox"
+					/>
+					<Setting
+						disabled={settings.enable_forward_rewind_buttons?.toString() !== "true"}
+						id="forward_rewind_buttons_time"
+						label={t("settings.sections.forwardRewindButtons.time.label")}
+						onChange={setValueOption("forward_rewind_buttons_time")}
+						title={t("settings.sections.forwardRewindButtons.time.title")}
+						type="number"
+						value={settings.forward_rewind_buttons_time}
+					/>
+				</SettingSection>
+				<SettingSection title={t("settings.sections.youtubeDeepDark.title")}>
+					<SettingTitle />
+					<fieldset className={cn("flex flex-row gap-1")}>
+						<fieldset className={cn("flex flex-row gap-1")}>
+							<legend className="mb-1 text-lg sm:text-xl md:text-2xl">{t("settings.sections.youtubeDeepDark.author")}</legend>
 							<Link href="https://github.com/RaitaroH">RaitaroH</Link>
-						</SettingSection>
-						<SettingSection className="mb-1">
-							<SettingTitle title={t("settings.sections.youtubeDeepDark.co-authors")} />
+						</fieldset>
+						<fieldset className={cn("flex flex-row gap-1")}>
+							<legend className="mb-1 text-lg sm:text-xl md:text-2xl">{t("settings.sections.youtubeDeepDark.co-authors")}</legend>
 							<Link href="https://github.com/MechaLynx">MechaLynx</Link>
-						</SettingSection>
-					</SettingSection>
+						</fieldset>
+					</fieldset>
 					<Setting
 						checked={settings.enable_deep_dark_theme?.toString() === "true"}
 						id="enable_deep_dark_theme"
@@ -1080,8 +1199,8 @@ export default function Settings() {
 						value={settings.deep_dark_custom_theme_colors.colorShadow}
 					/>
 				</SettingSection>
-				<SettingSection>
-					<SettingTitle title={t("settings.sections.customCSS.title")} />
+				<SettingSection title={t("settings.sections.customCSS.title")}>
+					<SettingTitle />
 					<Setting
 						checked={settings.enable_custom_css?.toString() === "true"}
 						id="enable_custom_css"
@@ -1101,6 +1220,55 @@ export default function Settings() {
 						value={settings.custom_css_code}
 					/>
 				</SettingSection>
+				<SettingSection title={t("settings.sections.playlistLength.title")}>
+					<SettingTitle />
+					<Setting
+						checked={settings.enable_playlist_length?.toString() === "true"}
+						id="enable_playlist_length"
+						label={t("settings.sections.playlistLength.enable.label")}
+						onChange={setCheckboxOption("enable_playlist_length")}
+						title={t("settings.sections.playlistLength.enable.title")}
+						type="checkbox"
+					/>
+					<Setting
+						disabled={settings.enable_playlist_length?.toString() !== "true"}
+						id="playlist_length_get_method"
+						label={t("settings.sections.playlistLength.wayToGetLength.select.label")}
+						onChange={setValueOption("playlist_length_get_method")}
+						options={playlistLengthGetMethodOptions}
+						selectedOption={getSelectedOption("playlist_length_get_method")}
+						title={t("settings.sections.playlistLength.wayToGetLength.select.title")}
+						type="select"
+					/>
+					<Setting
+						disabled={settings.enable_playlist_length?.toString() !== "true"}
+						id="playlist_watch_time_get_method"
+						label={t("settings.sections.playlistLength.wayToGetWatchTime.select.label")}
+						onChange={setValueOption("playlist_watch_time_get_method")}
+						options={playlistWatchTimeGetMethodOptions}
+						selectedOption={getSelectedOption("playlist_watch_time_get_method")}
+						title={t("settings.sections.playlistLength.wayToGetWatchTime.select.title")}
+						type="select"
+					/>
+				</SettingSection>
+				<SettingSection title={t("settings.sections.youtubeDataApiV3Key.title")}>
+					<SettingTitle />
+					<Setting
+						id="youtube_data_api_v3_key"
+						input_type="password"
+						label={t("settings.sections.youtubeDataApiV3Key.input.label")}
+						onChange={setValueOption("youtube_data_api_v3_key")}
+						title={t("settings.sections.youtubeDataApiV3Key.input.title")}
+						type="text-input"
+						value={settings.youtube_data_api_v3_key}
+					/>
+					<fieldset className={cn("flex flex-row gap-1")}>
+						<Link className="ml-2" href="https://developers.google.com/youtube/v3/getting-started" target="_blank">
+							{t("settings.sections.youtubeDataApiV3Key.getApiKeyLinkText")}
+						</Link>
+					</fieldset>
+				</SettingSection>
+
 				<div className="sticky bottom-0 left-0 z-10 flex justify-between gap-1 bg-[#f5f5f5] p-2 dark:bg-[#181a1b]">
 					<input
 						className="danger p-2 text-sm sm:text-base md:text-lg dark:hover:bg-[rgba(24,26,27,0.5)]"

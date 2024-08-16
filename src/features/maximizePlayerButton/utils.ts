@@ -24,11 +24,14 @@ export function updateProgressBarPositions() {
 
 function adjustPlayer(action: ModifyElementAction) {
 	const elements: ElementClassPair[] = [
-		{ className: "yte-maximized-video", selector: "video.html5-main-video" },
-		{ className: "yte-maximized-video-container", selector: "div#movie_player" },
-		{ className: "yte-maximized-chrome-bottom", selector: "div.ytp-chrome-bottom" },
-		{ className: "yte-maximized-chapter-hover-container", selector: "div.ytp-chapter-hover-container" },
-		{ className: "yte-maximized-storyboard-framepreview-timestamp", selector: "div.ytp-storyboard-framepreview-timestamp" }
+		{ className: "yte-maximized-video", element: document.querySelector("video.html5-main-video") },
+		{ className: "yte-maximized-video-container", element: document.querySelector("div#movie_player") },
+		{ className: "yte-maximized-chrome-bottom", element: document.querySelector("div.ytp-chrome-bottom") },
+		{ className: "yte-maximized-chapter-hover-container", element: document.querySelector("div.ytp-chapter-hover-container") },
+		{
+			className: "yte-maximized-storyboard-framepreview-timestamp",
+			element: document.querySelector("div.ytp-storyboard-framepreview-timestamp")
+		}
 	];
 	modifyElementsClassList(action, elements);
 }
@@ -61,7 +64,7 @@ export function maximizePlayer() {
 					if (!maximizePlayerButton) return;
 					maximizePlayerButton.ariaChecked = "false";
 					const button = getFeatureButton("maximizePlayerButton");
-					const icon = getFeatureIcon("maximizePlayerButton", "shared_icon_position");
+					const icon = getFeatureIcon("maximizePlayerButton", "player_controls_left");
 					if (button && button instanceof HTMLButtonElement) {
 						if (typeof icon === "object" && "off" in icon && "on" in icon) updateFeatureButtonIcon(button, icon.off);
 						updateFeatureButtonTitle(
@@ -73,11 +76,11 @@ export function maximizePlayer() {
 				"maximizePlayerButton"
 			);
 	});
-	[...leftControls.childNodes, ...rightControls.childNodes].forEach((node) => {
+	([...leftControls.childNodes, ...rightControls.childNodes] as HTMLElement[]).forEach((node) => {
 		eventManager.addEventListener(
-			node as HTMLElement,
+			node,
 			"mouseover",
-			() => adjustTooltip("add", { className: "yte-maximized-tooltip", selector: "div#movie_player > div.ytp-tooltip" }),
+			() => adjustTooltip("add", { className: "yte-maximized-tooltip", element: document.querySelector("div#movie_player > div.ytp-tooltip") }),
 			"maximizePlayerButton"
 		);
 	});

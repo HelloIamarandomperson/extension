@@ -5,25 +5,32 @@ import type {
 	ActionMessage,
 	AllButtonNames,
 	AnyFunction,
+	ButtonPlacementChange,
 	ContentSendOnlyMessageMappings,
 	ContentToBackgroundSendOnlyMessageMappings,
+	DeepPartial,
 	ExtensionSendOnlyMessageMappings,
+	FeatureToMultiButtonMap,
 	MessageMappings,
 	MessageSource,
 	Messages,
+	MultiButtonChange,
 	Nullable,
 	OnScreenDisplayPosition,
 	Path,
 	PathValue,
+	PlayerQualityFallbackStrategy,
 	Selector,
 	SendDataMessage,
+	SingleButtonChange,
 	SingleButtonFeatureNames,
 	SingleButtonNames,
-	YoutubePlayerQualityLevel
+	YoutubePlayerQualityLevel,
+	configuration
 } from "../types";
 import type { SVGElementAttributes } from "./SVGElementAttributes";
 
-import { featureToMultiButtonsMap, youtubePlayerQualityLevels } from "../types";
+import { buttonNameToSettingName, featureToMultiButtonsMap, youtubePlayerQualityLevels } from "../types";
 import { type FeatureName, eventManager } from "./EventManager";
 
 export const isStrictEqual = (value1: unknown) => (value2: unknown) => value1 === value2;
@@ -47,38 +54,55 @@ export const toDivisible = (value: number, divider: number): number => Math.ceil
 
 export function chooseClosestQuality(
 	selectedQuality: YoutubePlayerQualityLevel,
-	availableQualities: YoutubePlayerQualityLevel[]
+	availableQualities: YoutubePlayerQualityLevel[],
+	fallbackStrategy: PlayerQualityFallbackStrategy
 ): Nullable<YoutubePlayerQualityLevel> {
 	// If there are no available qualities, return null
 	if (availableQualities.length === 0) {
 		return null;
 	}
 
+	// If the selected quality is available, return it
+	if (availableQualities.includes(selectedQuality)) {
+		return selectedQuality;
+	}
+
 	// Find the index of the selected quality in the array
 	const selectedIndex = youtubePlayerQualityLevels.indexOf(selectedQuality);
-
-	// If the selected quality is not in the array, return null
-	if (selectedIndex === -1) {
-		return null;
-	}
 
 	// Find the available quality levels that are closest to the selected quality level
 	const closestQualities = availableQualities.reduce(
 		(acc, quality) => {
 			const qualityIndex = youtubePlayerQualityLevels.indexOf(quality);
 			if (qualityIndex !== -1) {
-				acc.push({ difference: Math.abs(selectedIndex - qualityIndex), quality });
+				acc.push({ difference: Math.abs(selectedIndex - qualityIndex), quality, qualityIndex });
 			}
 			return acc;
 		},
-		[] as { difference: number; quality: YoutubePlayerQualityLevel }[]
+		[] as { difference: number; quality: YoutubePlayerQualityLevel; qualityIndex: number }[]
 	);
 
 	// Sort the closest qualities by difference in ascending order
 	closestQualities.sort((a, b) => a.difference - b.difference);
 
-	// Return the quality level with the minimum difference
-	return closestQualities[0].quality;
+	// If fallback strategy is "higher", prefer higher quality levels
+	if (fallbackStrategy === "higher") {
+		for (const { quality, qualityIndex } of closestQualities) {
+			if (qualityIndex > selectedIndex) {
+				return quality;
+			}
+		}
+	}
+
+	// If fallback strategy is "lower", prefer lower quality levels
+	if (fallbackStrategy === "lower") {
+		for (const { quality, qualityIndex } of closestQualities) {
+			if (qualityIndex < selectedIndex) {
+				return quality;
+			}
+		}
+	}
+	return null;
 }
 const BrowserColors = {
 	BgBlack: "background-color: black; color: white;",
@@ -154,7 +178,7 @@ function groupMessages(messages: { message: string; styling: string[] }[]): Arra
  * @returns The colorized log message.
  */
 export function browserColorLog(message: string, type?: ColorType) {
-	const prependLog = colorizeLog(`[YouTube Enhancer]`, "FgCyan");
+	const prependLog = colorizeLog(`[${getFormattedTimestamp()}] [YouTube Enhancer]`, "FgCyan");
 	const colorizedMessage = colorizeLog(message, type);
 	console.log(...groupMessages([prependLog, colorizedMessage]));
 }
@@ -340,6 +364,10 @@ export function isWatchPage() {
 export function isShortsPage() {
 	const firstSection = extractFirstSectionFromYouTubeURL(window.location.href);
 	return firstSection === "shorts";
+}
+export function isPlaylistPage() {
+	const firstSection = extractFirstSectionFromYouTubeURL(window.location.href);
+	return firstSection === "playlist";
 }
 export function formatError(error: unknown) {
 	if (error instanceof Error) {
@@ -687,4 +715,125 @@ export function deepMerge(target: Record<string, unknown>, source: Record<string
 	}
 
 	return merged;
+}
+
+export function groupButtonChanges(changes: ButtonPlacementChange): {
+	multiButtonChanges: MultiButtonChange;
+	singleButtonChanges: SingleButtonChange;
+} {
+	const multiButtonChanges: DeepPartial<MultiButtonChange> = {};
+	const singleButtonChanges: DeepPartial<SingleButtonChange> = {};
+
+	Object.keys(changes.buttonPlacement).forEach((button) => {
+		const buttonName = button;
+		if (
+			!Array.from(featureToMultiButtonsMap.keys())
+				.map((key) => featureToMultiButtonsMap.get(key))
+				.flat()
+				.includes(buttonName)
+		)
+			// eslint-disable-next-line prefer-destructuring, @typescript-eslint/no-unnecessary-type-assertion
+			return (singleButtonChanges[buttonName as SingleButtonFeatureNames] = changes.buttonPlacement[buttonName]);
+		const multiButtonFeatureNames = findKeyByValue(buttonName as Exclude<AllButtonNames, SingleButtonFeatureNames>);
+		if (multiButtonFeatureNames === undefined) return;
+		const featureButtons = featureToMultiButtonsMap.get(multiButtonFeatureNames) || [];
+		if (featureButtons.includes(buttonName)) {
+			if (!multiButtonChanges[multiButtonFeatureNames]) {
+				multiButtonChanges[multiButtonFeatureNames] = {};
+			}
+			// eslint-disable-next-line prefer-destructuring
+			multiButtonChanges[multiButtonFeatureNames]![buttonName as keyof FeatureToMultiButtonMap[typeof multiButtonFeatureNames]] =
+				changes.buttonPlacement[buttonName as keyof FeatureToMultiButtonMap[typeof multiButtonFeatureNames]];
+		}
+	});
+
+	return { multiButtonChanges: multiButtonChanges as MultiButtonChange, singleButtonChanges: singleButtonChanges as SingleButtonChange };
+}
+export function isButtonSelectDisabled(buttonName: AllButtonNames, settings: configuration) {
+	switch (buttonName) {
+		case "volumeBoostButton": {
+			return settings.volume_boost_mode === "global" || settings[buttonNameToSettingName[buttonName]] === false;
+		}
+		default: {
+			const { [buttonName]: settingName } = buttonNameToSettingName;
+			return settings[settingName] === false;
+		}
+	}
+}
+export function isNewYouTubeVideoLayout(): boolean {
+	// Check for the class in the new layout
+	const newLayoutElement = document.querySelector("ytd-player.ytd-watch-grid");
+
+	if (newLayoutElement) {
+		return true; // It's the new layout
+	} else {
+		return false; // It's the old layout
+	}
+}
+export function getFormattedTimestamp() {
+	const now = new Date();
+
+	const month = (now.getMonth() + 1).toString().padStart(2, "0");
+	const day = now.getDate().toString().padStart(2, "0");
+	const year = now.getFullYear().toString().substr(-2);
+	const hours = now.getHours();
+	const minutes = now.getMinutes().toString().padStart(2, "0");
+	const seconds = now.getSeconds().toString().padStart(2, "0");
+	const milliseconds = now.getMilliseconds().toString().padStart(3, "0");
+
+	const period = hours >= 12 ? "PM" : "AM";
+	const paddedHours = (hours % 12 || 12).toString().padStart(2, "0"); // Convert to 12-hour format and handle midnight (0 hours)
+
+	return `${month}/${day}/${year} ${paddedHours}:${minutes}:${seconds}:${milliseconds} ${period}`;
+}
+/**
+ * Parses an ISO 8601 duration string and returns the total number of seconds.
+ *
+ * @param {string} duration - The ISO 8601 duration string to parse.
+ * @return {number} The total number of seconds represented by the duration string.
+ */
+export function parseISO8601Duration(duration: string): number {
+	// Regular expression to match ISO 8601 duration format
+	const regex = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/;
+	// Extract hours, minutes, and seconds from the duration string
+	const matches = regex.exec(duration);
+	// If the duration string does not match the expected format, return 0
+	if (!matches) return 0;
+
+	// Parse the hours, minutes, and seconds from the matches array
+	const hours = parseInt(matches[1] || "0", 10);
+	const minutes = parseInt(matches[2] || "0", 10);
+	const seconds = parseInt(matches[3] || "0", 10);
+
+	// Calculate the total number of seconds by multiplying hours, minutes, and seconds
+	return hours * 3600 + minutes * 60 + seconds;
+}
+
+/**
+ * Formats a duration in seconds into a string representation.
+ *
+ * @param {number} seconds - The duration in seconds.
+ * @return {string} The formatted duration string in the format "HHhMMmSSs".
+ */
+export function formatDuration(seconds: number): string {
+	// Calculate the hours, minutes, and seconds
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	const secs = seconds % 60;
+
+	// Format the hours, minutes, and seconds with leading zeros
+	const formattedHours = hours.toString();
+	const formattedMinutes = minutes.toString().padStart(2, "0");
+	const formattedSeconds = secs.toString().padStart(2, "0");
+
+	// Combine the formatted values into a single string
+	return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
+export function timeStringToSeconds(timeString: string): number {
+	const parts = timeString.split(":").reverse();
+	let seconds = 0;
+	for (let i = 0; i < parts.length; i++) {
+		seconds += parseInt(parts[i], 10) * Math.pow(60, i);
+	}
+	return seconds;
 }

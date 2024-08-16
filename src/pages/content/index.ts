@@ -1,4 +1,4 @@
-import type { AvailableLocales } from "@/src/i18n";
+import type { AvailableLocales } from "@/src/i18n/constants";
 
 import { getVideoHistory, setVideoHistory } from "@/src/features/videoHistory/utils";
 import {
@@ -199,12 +199,34 @@ const getStoredSettings = async (): Promise<configuration> => {
 
 	return options;
 };
+const deepEqual = (a: unknown, b: unknown): boolean => {
+	if (a === b) return true;
+
+	if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) {
+		return false;
+	}
+
+	const keysA = Object.keys(a);
+	const keysB = Object.keys(b);
+
+	if (keysA.length !== keysB.length) return false;
+
+	for (const key of keysA) {
+		if (!keysB.includes(key)) return false;
+		if (!deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) return false;
+	}
+
+	return true;
+};
 const isValidChange = (change?: { newValue?: unknown; oldValue?: unknown }) => {
-	return (
-		change?.newValue !== undefined &&
-		change?.oldValue !== undefined &&
-		parseStoredValue(change.oldValue as string) !== parseStoredValue(change.newValue as string)
-	);
+	if (change?.newValue === undefined || change?.oldValue === undefined) {
+		return false;
+	}
+
+	const parsedOldValue = parseStoredValue(change.oldValue as string);
+	const parsedNewValue = parseStoredValue(change.newValue as string);
+
+	return !deepEqual(parsedOldValue, parsedNewValue);
 };
 const storageChangeHandler = async (changes: StorageChanges, areaName: string) => {
 	if (areaName !== "local") return;
@@ -259,6 +281,11 @@ const storageChangeHandler = async (changes: StorageChanges, areaName: string) =
 				automaticTheaterModeEnabled: newValue
 			});
 		},
+		enable_copy_timestamp_url_button: (__oldValue, newValue) => {
+			sendExtensionOnlyMessage("copyTimestampUrlButtonChange", {
+				copyTimestampUrlButtonEnabled: newValue
+			});
+		},
 		enable_custom_css: (__oldValue, newValue) => {
 			sendExtensionOnlyMessage("customCSSChange", { customCSSCode: options.custom_css_code, customCSSEnabled: newValue });
 		},
@@ -275,9 +302,30 @@ const storageChangeHandler = async (changes: StorageChanges, areaName: string) =
 				playerSpeed: options.player_speed
 			});
 		},
+		enable_forward_rewind_buttons: (__oldValue, newValue) => {
+			sendExtensionOnlyMessage("forwardRewindButtonsChange", {
+				forwardRewindButtonsEnabled: newValue
+			});
+		},
+		enable_hide_end_screen_cards: (__oldValue, newValue) => {
+			sendExtensionOnlyMessage("hideEndScreenCardsChange", {
+				hideEndScreenCardsButtonPlacement: options.button_placements["hideEndScreenCardsButton"],
+				hideEndScreenCardsEnabled: newValue
+			});
+		},
+		enable_hide_end_screen_cards_button: (__oldValue, newValue) => {
+			sendExtensionOnlyMessage("hideEndScreenCardsButtonChange", {
+				hideEndScreenCardsButtonEnabled: newValue
+			});
+		},
 		enable_hide_live_stream_chat: (__oldValue, newValue) => {
 			sendExtensionOnlyMessage("hideLiveStreamChatChange", {
 				hideLiveStreamChatEnabled: newValue
+			});
+		},
+		enable_hide_paid_promotion_banner: (__oldValue, newValue) => {
+			sendExtensionOnlyMessage("hidePaidPromotionBannerChange", {
+				hidePaidPromotionBannerEnabled: newValue
 			});
 		},
 		enable_hide_scrollbar: (__oldValue, newValue) => {
@@ -324,6 +372,11 @@ const storageChangeHandler = async (changes: StorageChanges, areaName: string) =
 			sendExtensionOnlyMessage("playbackSpeedButtonsChange", {
 				playbackButtonsSpeed: options.playback_buttons_speed,
 				playbackSpeedButtonsEnabled: newValue
+			});
+		},
+		enable_playlist_length: (__oldValue, newValue) => {
+			sendExtensionOnlyMessage("playlistLengthChange", {
+				playlistLengthEnabled: newValue
 			});
 		},
 		enable_redirect_remover: (__oldValue, newValue) => {
@@ -387,6 +440,11 @@ const storageChangeHandler = async (changes: StorageChanges, areaName: string) =
 				featureMenuOpenType: newValue
 			});
 		},
+		forward_rewind_buttons_time: () => {
+			sendExtensionOnlyMessage("forwardRewindButtonsChange", {
+				forwardRewindButtonsEnabled: options.enable_forward_rewind_buttons
+			});
+		},
 		language: (__oldValue, newValue) => {
 			sendExtensionOnlyMessage("languageChange", {
 				language: newValue
@@ -403,6 +461,12 @@ const storageChangeHandler = async (changes: StorageChanges, areaName: string) =
 				enableForcedPlaybackSpeed: options.enable_forced_playback_speed,
 				playerSpeed: newValue
 			});
+		},
+		playlist_length_get_method: () => {
+			sendExtensionOnlyMessage("playlistLengthGetMethodChange", undefined);
+		},
+		playlist_watch_time_get_method: () => {
+			sendExtensionOnlyMessage("playlistWatchTimeGetMethodChange", undefined);
 		},
 		volume_boost_amount: (newValue) => {
 			sendExtensionOnlyMessage("volumeBoostAmountChange", {

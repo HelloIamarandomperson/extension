@@ -8,9 +8,34 @@
 	"pages": {
 		"content": {
 			"features": {
+				"copyTimestampUrlButton": {
+					"button": {
+						"copied": "Copiato!",
+						"label": "Copia URL video con temporizzazione"
+					}
+				},
 				"featureMenu": {
 					"button": {
 						"label": "Menu' funzioni"
+					}
+				},
+				"forwardRewindButtons": {
+					"buttons": {
+						"forwardButton": {
+							"label": "Avanti veloce di {{TIME}}"
+						},
+						"rewindButton": {
+							"label": "Riavvolgi di {{TIME}}"
+						}
+					}
+				},
+				"hideEndScreenCardsButton": {
+					"button": {
+						"label": "Nascondi le schede finali",
+						"toggle": {
+							"off": "Mostra le schede finali",
+							"on": "Nascondi le schede finali"
+						}
 					}
 				},
 				"loopButton": {
@@ -47,6 +72,9 @@
 					},
 					"decreaseLimit": "Impossibile diminuire ulteriormente ({{SPEED}})",
 					"increaseLimit": "Impossibile aumentare ulteriormente ({{SPEED}})"
+				},
+				"playlistLength": {
+					"title": "La lunghezza totale può non essere accurata se alcuni video sono nascosti o se non hai caricato abbastanza video per ottenere la lunghezza completa."
 				},
 				"screenshotButton": {
 					"button": {
@@ -101,6 +129,16 @@
 					"label": "Regolazione automatica qualità",
 					"title": "Regola automaticamente la qualità video al livello selezionato."
 				},
+				"fallbackQualityStrategy": {
+					"select": {
+						"label": "Strategia ripiego qualità",
+						"options": {
+							"higher": "Più alta",
+							"lower": "Più bassa"
+						},
+						"title": "La strategia da usare quando la qualità selezionata non è disponibile"
+					}
+				},
 				"select": {
 					"label": "Qualità riproduttore",
 					"title": "La qualità alla quale impostare il video"
@@ -127,11 +165,15 @@
 			"buttonPlacement": {
 				"select": {
 					"buttonNames": {
+						"copyTimestampUrlButton": "Pulsante \"Copia URL video con temporizzazione\"",
 						"decreasePlaybackSpeedButton": "Pulsante Riduci velocità",
+						"forwardButton": "Pulsante Avanti veloce",
+						"hideEndScreenCardsButton": "Pulsante Nascondi schede finali",
 						"increasePlaybackSpeedButton": "Pulsante Aumenta velocità",
 						"loopButton": "Pulsante Ripeti",
 						"maximizePlayerButton": "Pulsante Massimizza",
 						"openTranscriptButton": "Pulsante Apri trascrizione",
+						"rewindButton": "Pulsante Riavvolgi",
 						"screenshotButton": "Pulsante Schermata",
 						"volumeBoostButton": "Pulsante Aumento volume"
 					},
@@ -182,6 +224,17 @@
 					"title": "Impostazioni menu' funzioni"
 				}
 			},
+			"forwardRewindButtons": {
+				"enable": {
+					"label": "Abilita pulsanti avanti/riavvolgi",
+					"title": "Aggiunge i pulsanti avanti e riavvolgi al riproduttore video"
+				},
+				"time": {
+					"label": "Tempo avanzamento/riavvolgimento",
+					"title": "Il periodo di tempo da usare per avanzare/riavvolgere il video"
+				},
+				"title": "Impostazioni pulsante Avanti / Riavvolgi"
+			},
 			"importExportSettings": {
 				"exportButton": {
 					"success": "Impostazioni esportate correttamente",
@@ -211,9 +264,25 @@
 						"label": "Modalità teatro automatica",
 						"title": "Attiva automaticamente la modalità teatro quando carichi un video"
 					},
+					"copyTimestampUrlButton": {
+						"label": "Pulsante \"Copia URL video con temporizzazione\"",
+						"title": "Copia l'URL del video con la temporizzazione (?t=123)"
+					},
+					"hideEndScreenCards": {
+						"label": "Nascondi le schede finali",
+						"title": "Nasconde le schede alla fine del video"
+					},
+					"hideEndScreenCardsButton": {
+						"label": "Pulsante Nascondi schede finali",
+						"title": "Aggiunge un pulsante per mostrare/nascondere le schede alla fine del video"
+					},
 					"hideLiveStreamChat": {
 						"label": "Nascondi chat live stream",
 						"title": "Nasconde la chat live stream"
+					},
+					"hidePaidPromotionBanner": {
+						"label": "Nascondi banner promozioni a pagamento",
+						"title": "Nasconde il banner con promozioni a pagamento che appare quando si guarda un video"
 					},
 					"hideScrollbar": {
 						"label": "Nascondi barra scorrimento",
@@ -224,8 +293,8 @@
 						"title": "Nasconde tutti i blocchi"
 					},
 					"hideTranslateComment": {
-						"label": "Hide translate comment button",
-						"title": "Hides 'Translate to Language' button under comments"
+						"label": "Nascondi pulsante \"Traduci commento\"",
+						"title": "Nasconde il pulsante 'Traduci in…' sotto i commenti"
 					},
 					"loopButton": {
 						"label": "Pulsante Ripeti",
@@ -343,6 +412,29 @@
 				},
 				"title": "Impostazioni velocità riproduzione"
 			},
+			"playlistLength": {
+				"enable": {
+					"label": "Mostra informazioni lunghezza lista riproduzioni",
+					"title": "Mostra la lunghezza totale della lista riproduzioni, quanto è stato guardato e quanto ne rimane."
+				},
+				"title": "Impostazioni lunghezza lista riproduzioni",
+				"wayToGetLength": {
+					"select": {
+						"label": "Metodo per ottenere la lunghezza della lista riproduzioni",
+						"title": "Il modo per ottenere informazioni sulla lunghezza della lista riproduzioni (il metodo API sarà ripiegato in HTML se si verificasse un errore)"
+					}
+				},
+				"wayToGetWatchTime": {
+					"select": {
+						"label": "Method to get watched time",
+						"options": {
+							"duration": "Video Length",
+							"youtube": "Video Watch Time"
+						},
+						"title": "The way to get the amount of time watched (Video Length type only used on watch page)"
+					}
+				}
+			},
 			"screenshotButton": {
 				"enable": {
 					"label": "Pulsante Schermata",
@@ -406,6 +498,9 @@
 				},
 				"title": "Impostazioni controllo volume con rotellina"
 			},
+			"settingSearch": {
+				"placeholder": "Cerca un'impostazione"
+			},
 			"videoHistory": {
 				"enable": {
 					"label": "Traccia i video visti",
@@ -443,6 +538,14 @@
 					}
 				},
 				"title": "Impostazioni aumento volume"
+			},
+			"youtubeDataApiV3Key": {
+				"getApiKeyLinkText": "Puoi ottenerne una da qui",
+				"input": {
+					"label": "Chiave API",
+					"title": "Inserisci la tua chiave Youtube API V3."
+				},
+				"title": "Chiave Youtube API V3"
 			},
 			"youtubeDeepDark": {
 				"author": "Autore",

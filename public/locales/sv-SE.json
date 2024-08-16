@@ -8,9 +8,34 @@
 	"pages": {
 		"content": {
 			"features": {
+				"copyTimestampUrlButton": {
+					"button": {
+						"copied": "Copied!",
+						"label": "Copy video URL with timestamp"
+					}
+				},
 				"featureMenu": {
 					"button": {
 						"label": "Funktionsmeny"
+					}
+				},
+				"forwardRewindButtons": {
+					"buttons": {
+						"forwardButton": {
+							"label": "Snabbspola med {{TIME}}"
+						},
+						"rewindButton": {
+							"label": "Återspola med {{TIME}}"
+						}
+					}
+				},
+				"hideEndScreenCardsButton": {
+					"button": {
+						"label": "Dölj slutskärmskort",
+						"toggle": {
+							"off": "Visa slutskärmskort",
+							"on": "Dölj slutskärmskort"
+						}
 					}
 				},
 				"loopButton": {
@@ -39,14 +64,17 @@
 				"playbackSpeedButtons": {
 					"buttons": {
 						"decreasePlaybackSpeedButton": {
-							"label": "Minska hastigheten med {{SPEED}}"
+							"label": "Minska hastigheten till {{SPEED}}"
 						},
 						"increasePlaybackSpeedButton": {
-							"label": "Öka hastigheten med {{SPEED}}"
+							"label": "Öka hastigheten till {{SPEED}}"
 						}
 					},
-					"decreaseLimit": "Can't decrease further ({{SPEED}})",
-					"increaseLimit": "Can't increase further ({{SPEED}})"
+					"decreaseLimit": "Det går inte att sänka mer ({{SPEED}})",
+					"increaseLimit": "Det går inte att höja mer ({{SPEED}})"
+				},
+				"playlistLength": {
+					"title": "Total length may not be accurate if some videos are hidden or if you haven't loaded enough videos to get the full length."
 				},
 				"screenshotButton": {
 					"button": {
@@ -101,6 +129,16 @@
 					"label": "Automatisk kvalitetsjustering",
 					"title": "Justerar automatiskt videokvaliteten till den valda nivån."
 				},
+				"fallbackQualityStrategy": {
+					"select": {
+						"label": "Reservmetod för kvaliten",
+						"options": {
+							"higher": "Högre",
+							"lower": "Lägre"
+						},
+						"title": "Metod att använda när den valda kvaliteten inte är tillgänglig"
+					}
+				},
 				"select": {
 					"label": "Spelarkvalitet",
 					"title": "Kvaliteten för att ställa in videon till"
@@ -127,11 +165,15 @@
 			"buttonPlacement": {
 				"select": {
 					"buttonNames": {
+						"copyTimestampUrlButton": "Copy video URL with timestamp button",
 						"decreasePlaybackSpeedButton": "Knapp för att mindska hastigheten",
+						"forwardButton": "Snabbspolningsknapp",
+						"hideEndScreenCardsButton": "Dölj knappen för slutskärmskort",
 						"increasePlaybackSpeedButton": "Knapp för att öka hastigheten",
 						"loopButton": "Slingknapp",
 						"maximizePlayerButton": "Maximeraknapp",
 						"openTranscriptButton": "Transkriptknapp",
+						"rewindButton": "Återspolningsknapp",
 						"screenshotButton": "Skärmbildsknapp",
 						"volumeBoostButton": "Volymökningsknapp"
 					},
@@ -155,7 +197,7 @@
 					},
 					"title": "Placera {{BUTTON_NAME}} {{PLACEMENT}}"
 				},
-				"title": "Inställningar för knappplacering"
+				"title": "Inställningar för knapplacering"
 			},
 			"customCSS": {
 				"editor": {
@@ -181,6 +223,17 @@
 					},
 					"title": "Inställningar för funktionsmeny"
 				}
+			},
+			"forwardRewindButtons": {
+				"enable": {
+					"label": "Aktivera spola framåt-/återspolningsknappar",
+					"title": "Lägger till spola framåt- och återspolningsknappar till videospelaren"
+				},
+				"time": {
+					"label": "Spola framåt-/återspolningstid",
+					"title": "Tiden som videon ska spolas framåt/återspolas med"
+				},
+				"title": "Inställningar för knapparna spola framåt/återspola"
 			},
 			"importExportSettings": {
 				"exportButton": {
@@ -211,9 +264,25 @@
 						"label": "Automatiskt teaterläge",
 						"title": "Aktiverar automatiskt teaterläge när du startar en video"
 					},
+					"copyTimestampUrlButton": {
+						"label": "Copy video URL with timestamp button",
+						"title": "Copies video URL with timestamp (?t=123)"
+					},
+					"hideEndScreenCards": {
+						"label": "Dölj slutskärmskort",
+						"title": "Döljer korten i slutet av videon"
+					},
+					"hideEndScreenCardsButton": {
+						"label": "Dölj knappen för slutskärmskort",
+						"title": "Lägger till en knapp för att visa/dölja korten i slutet av videon"
+					},
 					"hideLiveStreamChat": {
-						"label": "Hide live stream chat",
-						"title": "Hides the live stream chat"
+						"label": "Dölj direktströmschatt",
+						"title": "Döljer direktströmschatten"
+					},
+					"hidePaidPromotionBanner": {
+						"label": "Dölj betald marknadsföringsbanner",
+						"title": "Döljer bannern som visas när du tittar på en video som har betald marknadsföring"
 					},
 					"hideScrollbar": {
 						"label": "Dölj rullningslisten",
@@ -224,8 +293,8 @@
 						"title": "Döljer alla shorts"
 					},
 					"hideTranslateComment": {
-						"label": "Hide translate comment button",
-						"title": "Hides 'Translate to Language' button under comments"
+						"label": "Dölj översättning av kommentarer",
+						"title": "Döljer knappen 'Översätt till språk' under kommentarer"
 					},
 					"loopButton": {
 						"label": "Slingknapp",
@@ -268,8 +337,8 @@
 						"title": "Rullar automatiskt till nästa shorts"
 					},
 					"skipContinueWatching": {
-						"label": "Skip \"Video is paused. Continue watching?\"",
-						"title": "Skips the idle dialog that pauses video playback"
+						"label": "Hoppa över \"Videon är pausad. Fortsätt titta?\"",
+						"title": "Hoppa över dialogrutan som pausar videouppspelningen"
 					}
 				},
 				"title": "Övriga inställningar"
@@ -316,7 +385,7 @@
 				"type": {
 					"label": "Typ",
 					"options": {
-						"circle": "Circle",
+						"circle": "Cirkel",
 						"line": "Rad",
 						"no_display": "Ingen visning",
 						"text": "Text"
@@ -342,6 +411,29 @@
 					"title": "Hastigheten att spela upp videon i"
 				},
 				"title": "Inställningar för uppspelningshastighet"
+			},
+			"playlistLength": {
+				"enable": {
+					"label": "Display playlist length information",
+					"title": "Shows the total length of the playlist, how much has been watched, and how much remains."
+				},
+				"title": "Playlist length settings",
+				"wayToGetLength": {
+					"select": {
+						"label": "Method to get playlist length",
+						"title": "The way to get playlist length information (API method will fallback to HTML if an error occurs)"
+					}
+				},
+				"wayToGetWatchTime": {
+					"select": {
+						"label": "Method to get watched time",
+						"options": {
+							"duration": "Video Length",
+							"youtube": "Video Watch Time"
+						},
+						"title": "The way to get the amount of time watched (Video Length type only used on watch page)"
+					}
+				}
 			},
 			"screenshotButton": {
 				"enable": {
@@ -406,6 +498,9 @@
 				},
 				"title": "Rullningshjulets volyminställningar"
 			},
+			"settingSearch": {
+				"placeholder": "Sök efter en inställning"
+			},
 			"videoHistory": {
 				"enable": {
 					"label": "Håll reda på visade videor",
@@ -443,6 +538,14 @@
 					}
 				},
 				"title": "Inställningar för volymökning"
+			},
+			"youtubeDataApiV3Key": {
+				"getApiKeyLinkText": "You can get one from here",
+				"input": {
+					"label": "API Key",
+					"title": "Enter your Youtube Data API V3 key."
+				},
+				"title": "YouTube API V3 Key"
 			},
 			"youtubeDeepDark": {
 				"author": "Skapare",

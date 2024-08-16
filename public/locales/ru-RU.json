@@ -8,9 +8,34 @@
 	"pages": {
 		"content": {
 			"features": {
+				"copyTimestampUrlButton": {
+					"button": {
+						"copied": "Скопировано!",
+						"label": "Копировать URL видео с таймкодом"
+					}
+				},
 				"featureMenu": {
 					"button": {
 						"label": "Меню функций"
+					}
+				},
+				"forwardRewindButtons": {
+					"buttons": {
+						"forwardButton": {
+							"label": "Перемотка вперёд на {{TIME}}"
+						},
+						"rewindButton": {
+							"label": "Перемотка назад на {{TIME}}"
+						}
+					}
+				},
+				"hideEndScreenCardsButton": {
+					"button": {
+						"label": "Скрыть заставки следующих видео",
+						"toggle": {
+							"off": "Показать заставки следующих видео",
+							"on": "Скрыть заставки следующих видео"
+						}
 					}
 				},
 				"loopButton": {
@@ -45,8 +70,11 @@
 							"label": "Увеличить скорость на {{SPEED}}"
 						}
 					},
-					"decreaseLimit": "Can't decrease further ({{SPEED}})",
-					"increaseLimit": "Can't increase further ({{SPEED}})"
+					"decreaseLimit": "Невозможно уменьшить ({{SPEED}})",
+					"increaseLimit": "Невозможно увеличить ({{SPEED}})"
+				},
+				"playlistLength": {
+					"title": "Total length may not be accurate if some videos are hidden or if you haven't loaded enough videos to get the full length."
 				},
 				"screenshotButton": {
 					"button": {
@@ -101,6 +129,16 @@
 					"label": "Включить автоматическую регулировку качества",
 					"title": "Автоматически настраивает качество видео на выбранный уровень."
 				},
+				"fallbackQualityStrategy": {
+					"select": {
+						"label": "Стратегия восстановления качества",
+						"options": {
+							"higher": "Выше",
+							"lower": "Ниже"
+						},
+						"title": "Какую стратегию использовать, когда выбранное качество недоступно"
+					}
+				},
 				"select": {
 					"label": "Качество проигрывателя",
 					"title": "Качество, которое будет задаваться для видео"
@@ -127,11 +165,15 @@
 			"buttonPlacement": {
 				"select": {
 					"buttonNames": {
+						"copyTimestampUrlButton": "Кнопка «Копировать URL видео с таймкодом»",
 						"decreasePlaybackSpeedButton": "Кнопка уменьшения скорости видео",
+						"forwardButton": "Кнопка перемотки вперёд",
+						"hideEndScreenCardsButton": "Кнопка «Скрыть заставки следующих видео»",
 						"increasePlaybackSpeedButton": "Кнопка увеличения скорости видео",
 						"loopButton": "Кнопка «Зациклить»",
 						"maximizePlayerButton": "Кнопка «Развернуть»",
 						"openTranscriptButton": "Кнопка «Открыть стенограмму»",
+						"rewindButton": "Кнопка перемотки назад",
 						"screenshotButton": "Кнопка «Скриншот»",
 						"volumeBoostButton": "Кнопка «Усиление громкости»"
 					},
@@ -182,6 +224,17 @@
 					"title": "Настройки меню функций"
 				}
 			},
+			"forwardRewindButtons": {
+				"enable": {
+					"label": "Включить кнопки перемотки вперёд/назад",
+					"title": "Добавляет кнопки перемотки вперёд/назад в проигрыватель"
+				},
+				"time": {
+					"label": "Время перемотки",
+					"title": "Кол-во времени, на которое будет перематываться видео"
+				},
+				"title": "Настройки кнопок перемотки вперёд/назад"
+			},
 			"importExportSettings": {
 				"exportButton": {
 					"success": "Настройки успешно экспортированы",
@@ -211,9 +264,25 @@
 						"label": "Включить автоматический режим кинотеатра",
 						"title": "Автоматически включать режим кинотеатра при загрузке видео"
 					},
+					"copyTimestampUrlButton": {
+						"label": "Кнопка «Копировать URL видео с таймкодом»",
+						"title": "Копирует ссылку видео с меткой времени (?t=123)"
+					},
+					"hideEndScreenCards": {
+						"label": "Скрыть заставки следующих видео",
+						"title": "Скрывает заставки следующих (предлагаемых) видео в конце ролика"
+					},
+					"hideEndScreenCardsButton": {
+						"label": "Кнопка «Скрыть заставки следующих видео»",
+						"title": "Добавляет кнопку для скрытия/отображения заставок следующих видео в конце ролика"
+					},
 					"hideLiveStreamChat": {
-						"label": "Hide live stream chat",
-						"title": "Hides the live stream chat"
+						"label": "Спрятать чат прямого эфира",
+						"title": "Прячет чат прямого эфира (стрима)"
+					},
+					"hidePaidPromotionBanner": {
+						"label": "Скрыть \"Содержит прямую рекламу\"",
+						"title": "Скрывает баннер, отображающийся при просмотре видео, которое имеет платную рекламу"
 					},
 					"hideScrollbar": {
 						"label": "Включить скрытие полосы прокрутки страницы",
@@ -224,8 +293,8 @@
 						"title": "Скрывает все Shorts"
 					},
 					"hideTranslateComment": {
-						"label": "Hide translate comment button",
-						"title": "Hides 'Translate to Language' button under comments"
+						"label": "Спрятать кнопку 'Перевести на...'",
+						"title": "Прячет кнопку 'Перевести на русский' под комментарием"
 					},
 					"loopButton": {
 						"label": "Включить кнопку «Зациклить»",
@@ -343,6 +412,29 @@
 				},
 				"title": "Настройки скорости воспроизведения"
 			},
+			"playlistLength": {
+				"enable": {
+					"label": "Display playlist length information",
+					"title": "Shows the total length of the playlist, how much has been watched, and how much remains."
+				},
+				"title": "Playlist length settings",
+				"wayToGetLength": {
+					"select": {
+						"label": "Method to get playlist length",
+						"title": "The way to get playlist length information (API method will fallback to HTML if an error occurs)"
+					}
+				},
+				"wayToGetWatchTime": {
+					"select": {
+						"label": "Method to get watched time",
+						"options": {
+							"duration": "Video Length",
+							"youtube": "Video Watch Time"
+						},
+						"title": "The way to get the amount of time watched (Video Length type only used on watch page)"
+					}
+				}
+			},
 			"screenshotButton": {
 				"enable": {
 					"label": "Включить кнопку «Скриншот»",
@@ -406,6 +498,9 @@
 				},
 				"title": "Настройки управления громкостью с помощью колеса мыши"
 			},
+			"settingSearch": {
+				"placeholder": "Поиск настроек"
+			},
 			"videoHistory": {
 				"enable": {
 					"label": "Отслеживание таймкода просматриваемого видео",
@@ -443,6 +538,14 @@
 					}
 				},
 				"title": "Настройки усиления громкости"
+			},
+			"youtubeDataApiV3Key": {
+				"getApiKeyLinkText": "You can get one from here",
+				"input": {
+					"label": "API Key",
+					"title": "Enter your Youtube Data API V3 key."
+				},
+				"title": "YouTube API V3 Key"
 			},
 			"youtubeDeepDark": {
 				"author": "Автор",

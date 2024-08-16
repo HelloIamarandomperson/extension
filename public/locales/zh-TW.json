@@ -8,9 +8,34 @@
 	"pages": {
 		"content": {
 			"features": {
+				"copyTimestampUrlButton": {
+					"button": {
+						"copied": "已複製！",
+						"label": "複製目前播放時間的影片網址"
+					}
+				},
 				"featureMenu": {
 					"button": {
-						"label": "Feature menu"
+						"label": "功能選單"
+					}
+				},
+				"forwardRewindButtons": {
+					"buttons": {
+						"forwardButton": {
+							"label": "快轉{{TIME}}"
+						},
+						"rewindButton": {
+							"label": "倒帶{{TIME}}"
+						}
+					}
+				},
+				"hideEndScreenCardsButton": {
+					"button": {
+						"label": "隱藏片尾資訊卡",
+						"toggle": {
+							"off": "顯示片尾資訊卡",
+							"on": "隱藏片尾資訊卡"
+						}
 					}
 				},
 				"loopButton": {
@@ -24,16 +49,16 @@
 				},
 				"maximizePlayerButton": {
 					"button": {
-						"label": "Maximize",
+						"label": "最大化",
 						"toggle": {
-							"off": "Maximize off",
-							"on": "Maximize on"
+							"off": "關閉最大化",
+							"on": "啟用最大化"
 						}
 					}
 				},
 				"openTranscriptButton": {
 					"button": {
-						"label": "Open transcript"
+						"label": "打開文字記錄"
 					}
 				},
 				"playbackSpeedButtons": {
@@ -47,6 +72,9 @@
 					},
 					"decreaseLimit": "無法再減速 ({{SPEED}})",
 					"increaseLimit": "無法再加速 ({{SPEED}})"
+				},
+				"playlistLength": {
+					"title": "如果某些影片被隱藏或沒載入足夠影片去讀取總時間的話，總時間有機會不準確。"
 				},
 				"screenshotButton": {
 					"button": {
@@ -62,10 +90,10 @@
 				},
 				"volumeBoostButton": {
 					"button": {
-						"label": "Volume Boost",
+						"label": "音量增強",
 						"toggle": {
-							"off": "Volume boost off",
-							"on": "Volume boost on"
+							"off": "關閉音量增強",
+							"on": "啟用音量增強"
 						}
 					}
 				}
@@ -101,6 +129,16 @@
 					"label": "自動畫質調整",
 					"title": "自動調整到指定畫質"
 				},
+				"fallbackQualityStrategy": {
+					"select": {
+						"label": "畫質後備策略",
+						"options": {
+							"higher": "較高",
+							"lower": "較低"
+						},
+						"title": "所選畫質不適用時的策略"
+					}
+				},
 				"select": {
 					"label": "播放畫質",
 					"title": "設定影片播放畫質"
@@ -127,11 +165,15 @@
 			"buttonPlacement": {
 				"select": {
 					"buttonNames": {
+						"copyTimestampUrlButton": "複製目前播放時間的影片網址按鈕",
 						"decreasePlaybackSpeedButton": "減慢速度按鈕",
+						"forwardButton": "快轉按鈕",
+						"hideEndScreenCardsButton": "隱藏片尾資訊卡按鈕",
 						"increasePlaybackSpeedButton": "加快速度按妞",
 						"loopButton": "循環播放按鈕",
 						"maximizePlayerButton": "最大化按鈕",
 						"openTranscriptButton": "開啟文字記錄按鈕",
+						"rewindButton": "倒帶按鈕",
 						"screenshotButton": "螢幕截圖按鈕",
 						"volumeBoostButton": "音量增強按鈕"
 					},
@@ -182,6 +224,17 @@
 					"title": "功能選單設定"
 				}
 			},
+			"forwardRewindButtons": {
+				"enable": {
+					"label": "啟用快轉倒帶按鈕",
+					"title": "在播放器加入快轉和倒帶按鈕"
+				},
+				"time": {
+					"label": "快轉/倒帶時間",
+					"title": "每次快轉/倒帶的時間"
+				},
+				"title": "快轉/倒帶按鈕設定"
+			},
 			"importExportSettings": {
 				"exportButton": {
 					"success": "設定已成功匯出",
@@ -211,9 +264,25 @@
 						"label": "自動啟用劇院模式",
 						"title": "載入影片時自動啟用劇院模式"
 					},
+					"copyTimestampUrlButton": {
+						"label": "複製目前播放時間的影片網址按鈕",
+						"title": "複製目前播放時間的影片網址 (?t=123)"
+					},
+					"hideEndScreenCards": {
+						"label": "隱藏片尾資訊卡",
+						"title": "隱藏影片片尾的資訊卡"
+					},
+					"hideEndScreenCardsButton": {
+						"label": "隱藏片尾資訊卡按鈕",
+						"title": "Adds a button to show/hide the cards at the end of the video"
+					},
 					"hideLiveStreamChat": {
 						"label": "隱藏直播聊天室",
 						"title": "隱藏直播的聊天室"
+					},
+					"hidePaidPromotionBanner": {
+						"label": "隱藏付費推廣橫幅",
+						"title": "隱藏當影片帶有付費推廣時顯示的橫幅"
 					},
 					"hideScrollbar": {
 						"label": "隱藏捲軸",
@@ -224,8 +293,8 @@
 						"title": "隱藏全部 Shorts"
 					},
 					"hideTranslateComment": {
-						"label": "Hide translate comment button",
-						"title": "Hides 'Translate to Language' button under comments"
+						"label": "隱藏翻譯留言按鈕",
+						"title": "隱藏留言下的翻譯按鈕"
 					},
 					"loopButton": {
 						"label": "循環按鈕",
@@ -343,6 +412,29 @@
 				},
 				"title": "播放速度設定"
 			},
+			"playlistLength": {
+				"enable": {
+					"label": "顯示播放清單時間資訊",
+					"title": "顯示播放清單總時間，已播放時間及剩餘時間。"
+				},
+				"title": "播放清單播放時間設定",
+				"wayToGetLength": {
+					"select": {
+						"label": "取得播放清單時間方法",
+						"title": "取得播放清單時間資訊的方法(如API方法失敗會使用HTML方式)"
+					}
+				},
+				"wayToGetWatchTime": {
+					"select": {
+						"label": "Method to get watched time",
+						"options": {
+							"duration": "Video Length",
+							"youtube": "Video Watch Time"
+						},
+						"title": "The way to get the amount of time watched (Video Length type only used on watch page)"
+					}
+				}
+			},
 			"screenshotButton": {
 				"enable": {
 					"label": "螢幕截圖按鈕",
@@ -406,6 +498,9 @@
 				},
 				"title": "滾輪音量控制設定"
 			},
+			"settingSearch": {
+				"placeholder": "搜尋設定"
+			},
 			"videoHistory": {
 				"enable": {
 					"label": "記住已觀看的影片",
@@ -444,6 +539,14 @@
 				},
 				"title": "音量增強設定"
 			},
+			"youtubeDataApiV3Key": {
+				"getApiKeyLinkText": "你可以從這裡取得",
+				"input": {
+					"label": "API 金鑰",
+					"title": "輸入你的 YouTube Data API V3 金鑰"
+				},
+				"title": "YouTube API V3 金鑰"
+			},
 			"youtubeDeepDark": {
 				"author": "作者",
 				"co-authors": "共同作者",
@@ -473,7 +576,7 @@
 						"title": "主要文字的顏色"
 					},
 					"secondBackground": {
-						"label": "Secondary background color",
+						"label": "次要背景顏色",
 						"title": "次要背景顏色"
 					}
 				},

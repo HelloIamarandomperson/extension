@@ -1,15 +1,20 @@
 import type { ParseKeys, TOptions } from "i18next";
+import type EnUS from "public/locales/en-US.json";
 import type { YouTubePlayer } from "youtube-player/dist/types";
 
 import z, { ZodType } from "zod";
 
 import type { DeepDarkPreset } from "../deepDarkPresets";
-import type { AvailableLocales } from "../i18n";
+import type { AvailableLocales } from "../i18n/constants";
 // #region Utility types
 export type Nullable<T> = T | null;
+export type NonNullable<T> = T extends Nullable<T> ? Exclude<T, null> : T;
+export type NonNullableObject<T> = { [K in keyof T]: NonNullable<T[K]> };
 export type AnyFunction = (...args: any[]) => void;
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 export type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
+export type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> };
+export type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type WithId<S extends string> = `#${S}`;
 export type Prettify<T> = {
 	[K in keyof T]: T[K];
@@ -100,6 +105,8 @@ export const youtubePlayerQualityLevels = [
 	"auto"
 ] as const;
 export type YoutubePlayerQualityLevel = (typeof youtubePlayerQualityLevels)[number];
+export const PlayerQualityFallbackStrategy = ["higher", "lower"] as const;
+export type PlayerQualityFallbackStrategy = (typeof PlayerQualityFallbackStrategy)[number];
 export const youtubePlayerSpeedRatesExtended = [2.25, 2.5, 2.75, 3, 3.25, 3.75, 4] as const;
 export const youtubePlayerSpeedRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, ...youtubePlayerSpeedRatesExtended] as const;
 export const youtubePlaybackSpeedButtonsRates = [0.25, 0.5, 0.75, 1] as const;
@@ -115,7 +122,28 @@ export const videoHistoryResumeTypes = ["automatic", "prompt"] as const;
 export type VideoHistoryResumeType = (typeof videoHistoryResumeTypes)[number];
 export const buttonPlacements = ["below_player", "feature_menu", "player_controls_left", "player_controls_right"] as const;
 export type ButtonPlacement = (typeof buttonPlacements)[number];
+export const playlistWatchTimeGetMethod = ["duration", "youtube"] as const;
+export type PlaylistWatchTimeGetMethod = (typeof playlistWatchTimeGetMethod)[number];
+export const playlistLengthGetMethod = ["api", "html"] as const;
+export type PlaylistLengthGetMethod = (typeof playlistLengthGetMethod)[number];
 export const featureMenuOpenTypes = ["click", "hover"] as const;
+export type MultiButtonChange = {
+	[K in MultiButtonFeatureNames]: {
+		[Button in keyof FeatureToMultiButtonMap[K]]: {
+			new: ButtonPlacement;
+			old: ButtonPlacement;
+		};
+	};
+};
+export type SingleButtonChange = { [K in SingleButtonFeatureNames]: { new: ButtonPlacement; old: ButtonPlacement } };
+export type ButtonPlacementChange = {
+	buttonPlacement: {
+		[Key in AllButtonNames]: {
+			new: ButtonPlacement;
+			old: ButtonPlacement;
+		};
+	};
+};
 export type FeatureMenuOpenType = (typeof featureMenuOpenTypes)[number];
 export type DeepDarkCustomThemeColors = {
 	colorShadow: string;
@@ -129,24 +157,63 @@ export type DeepDarkCustomThemeColors = {
 type TOptionsKeys = ParseKeys<"en-US", TOptions, undefined>;
 export type AllButtonNames = Exclude<ExtractButtonNames<TOptionsKeys>, "featureMenu">;
 export type SingleButtonNames = Exclude<AllButtonNames, MultiButtonNames>;
-export type SingleButtonFeatureNames = Exclude<ExtractButtonFeatureNames<TOptionsKeys>, "featureMenu">;
+export type SingleButtonFeatureNames = Exclude<
+	ExtractButtonFeatureNames<`pages.content.features.${string}.button.label` & TOptionsKeys>,
+	"featureMenu"
+>;
 export type MultiButtonNames = Exclude<AllButtonNames, SingleButtonFeatureNames>;
-export type MultiButtonFeatureNames = Exclude<SingleButtonFeatureNames, AllButtonNames>;
-export const featureToMultiButtonsMap: Map<MultiButtonFeatureNames, MultiButtonNames[]> = new Map([
-	["playbackSpeedButtons", ["increasePlaybackSpeedButton", "decreasePlaybackSpeedButton"]]
-]);
+export type MultiButtonFeatureNames = ExtractButtonFeatureNames<`pages.content.features.${string}.buttons.${string}.label` & TOptionsKeys>;
+export type FeatureToMultiButtonMap = {
+	[K in MultiButtonFeatureNames]: {
+		[Button in keyof EnUS["pages"]["content"]["features"][K]["buttons"]]: "";
+	};
+};
+const featureToMultiButtonMapEntries: FeatureToMultiButtonMap = {
+	forwardRewindButtons: {
+		forwardButton: "",
+		rewindButton: ""
+	},
+	playbackSpeedButtons: {
+		decreasePlaybackSpeedButton: "",
+		increasePlaybackSpeedButton: ""
+	}
+};
+export const featureToMultiButtonsMap = new Map(
+	Object.keys(featureToMultiButtonMapEntries).map((key) => [
+		key,
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+		Object.keys(featureToMultiButtonMapEntries[key]) as KeysOfUnion<FeatureToMultiButtonMap[typeof key]>[]
+	])
+);
 export type FeatureMenuItemIconId = `yte-${AllButtonNames}-icon`;
 export type FeatureMenuItemId = `yte-feature-${AllButtonNames}-menuitem`;
 export type FeatureMenuItemLabelId = `yte-${AllButtonNames}-label`;
 export const buttonNames = Object.keys({
+	copyTimestampUrlButton: "",
 	decreasePlaybackSpeedButton: "",
+	forwardButton: "",
+	hideEndScreenCardsButton: "",
 	increasePlaybackSpeedButton: "",
 	loopButton: "",
 	maximizePlayerButton: "",
 	openTranscriptButton: "",
+	rewindButton: "",
 	screenshotButton: "",
 	volumeBoostButton: ""
 } satisfies Record<AllButtonNames, "">);
+export const buttonNameToSettingName = {
+	copyTimestampUrlButton: "enable_copy_timestamp_url_button",
+	decreasePlaybackSpeedButton: "enable_playback_speed_buttons",
+	forwardButton: "enable_forward_rewind_buttons",
+	hideEndScreenCardsButton: "enable_hide_end_screen_cards_button",
+	increasePlaybackSpeedButton: "enable_playback_speed_buttons",
+	loopButton: "enable_loop_button",
+	maximizePlayerButton: "enable_maximize_player_button",
+	openTranscriptButton: "enable_open_transcript_button",
+	rewindButton: "enable_forward_rewind_buttons",
+	screenshotButton: "enable_screenshot_button",
+	volumeBoostButton: "enable_volume_boost"
+} satisfies Record<AllButtonNames, `enable_${string}` & configurationKeys>;
 export type ButtonPlacementConfigurationMap = {
 	[ButtonName in AllButtonNames]: ButtonPlacement;
 };
@@ -170,6 +237,37 @@ export type Notification = {
 	removeAfterMs?: number;
 	timestamp?: number;
 	type: NotificationType;
+};
+export type YouTubePlaylistResponse = {
+	items: YouTubePlaylistItem[];
+	nextPageToken?: string;
+};
+export type YouTubePlaylistItem = {
+	contentDetails: {
+		videoId: string;
+	};
+};
+
+export type YouTubeVideoResponse = {
+	items: YouTubeVideoItem[];
+};
+
+export type YouTubeVideoItem = {
+	contentDetails: {
+		duration: string; // ISO 8601 duration format
+	};
+};
+export type YouTubeAPIQuotaError = {
+	error: {
+		code: number;
+		errors: { domain: string; message: string; reason: string }[];
+		message: string;
+	};
+};
+export type VideoDetails = {
+	duration: number;
+	progress: number;
+	videoId: Nullable<string>;
 };
 export type CrowdinLanguageProgressResponse = {
 	data: {
@@ -256,24 +354,22 @@ export type ContentToBackgroundSendOnlyMessageMappings = {
 };
 export type ExtensionSendOnlyMessageMappings = {
 	automaticTheaterModeChange: DataResponseMessage<"automaticTheaterModeChange", { automaticTheaterModeEnabled: boolean }>;
-	buttonPlacementChange: DataResponseMessage<
-		"buttonPlacementChange",
-		{
-			buttonPlacement: {
-				[Key in AllButtonNames]: {
-					new: ButtonPlacement;
-					old: ButtonPlacement;
-				};
-			};
-		}
-	>;
+	buttonPlacementChange: DataResponseMessage<"buttonPlacementChange", ButtonPlacementChange>;
+	copyTimestampUrlButtonChange: DataResponseMessage<"copyTimestampUrlButtonChange", { copyTimestampUrlButtonEnabled: boolean }>;
 	customCSSChange: DataResponseMessage<"customCSSChange", { customCSSCode: string; customCSSEnabled: boolean }>;
 	deepDarkThemeChange: DataResponseMessage<
 		"deepDarkThemeChange",
 		{ deepDarkCustomThemeColors: DeepDarkCustomThemeColors; deepDarkPreset: DeepDarkPreset; deepDarkThemeEnabled: boolean }
 	>;
 	featureMenuOpenTypeChange: DataResponseMessage<"featureMenuOpenTypeChange", { featureMenuOpenType: FeatureMenuOpenType }>;
+	forwardRewindButtonsChange: DataResponseMessage<"forwardRewindButtonsChange", { forwardRewindButtonsEnabled: boolean }>;
+	hideEndScreenCardsButtonChange: DataResponseMessage<"hideEndScreenCardsButtonChange", { hideEndScreenCardsButtonEnabled: boolean }>;
+	hideEndScreenCardsChange: DataResponseMessage<
+		"hideEndScreenCardsChange",
+		{ hideEndScreenCardsButtonPlacement: ButtonPlacement; hideEndScreenCardsEnabled: boolean }
+	>;
 	hideLiveStreamChatChange: DataResponseMessage<"hideLiveStreamChatChange", { hideLiveStreamChatEnabled: boolean }>;
+	hidePaidPromotionBannerChange: DataResponseMessage<"hidePaidPromotionBannerChange", { hidePaidPromotionBannerEnabled: boolean }>;
 	hideScrollBarChange: DataResponseMessage<"hideScrollBarChange", { hideScrollBarEnabled: boolean }>;
 	hideShortsChange: DataResponseMessage<"hideShortsChange", { hideShortsEnabled: boolean }>;
 	hideTranslateCommentChange: DataResponseMessage<"hideTranslateCommentChange", { hideTranslateCommentEnabled: boolean }>;
@@ -293,6 +389,9 @@ export type ExtensionSendOnlyMessageMappings = {
 		{ playbackButtonsSpeed: number; playbackSpeedButtonsEnabled: boolean }
 	>;
 	playerSpeedChange: DataResponseMessage<"playerSpeedChange", { enableForcedPlaybackSpeed: boolean; playerSpeed?: number }>;
+	playlistLengthChange: DataResponseMessage<"playlistLengthChange", { playlistLengthEnabled: boolean }>;
+	playlistLengthGetMethodChange: DataResponseMessage<"playlistLengthGetMethodChange", undefined>;
+	playlistWatchTimeGetMethodChange: DataResponseMessage<"playlistWatchTimeGetMethodChange", undefined>;
 	remainingTimeChange: DataResponseMessage<"remainingTimeChange", { remainingTimeEnabled: boolean }>;
 	rememberVolumeChange: DataResponseMessage<"rememberVolumeChange", { rememberVolumeEnabled: boolean }>;
 	removeRedirectChange: DataResponseMessage<"removeRedirectChange", { removeRedirectEnabled: boolean }>;
@@ -351,10 +450,15 @@ export type configuration = {
 	deep_dark_preset: DeepDarkPreset;
 	enable_automatic_theater_mode: boolean;
 	enable_automatically_set_quality: boolean;
+	enable_copy_timestamp_url_button: boolean;
 	enable_custom_css: boolean;
 	enable_deep_dark_theme: boolean;
 	enable_forced_playback_speed: boolean;
+	enable_forward_rewind_buttons: boolean;
+	enable_hide_end_screen_cards: boolean;
+	enable_hide_end_screen_cards_button: boolean;
 	enable_hide_live_stream_chat: boolean;
+	enable_hide_paid_promotion_banner: boolean;
 	enable_hide_scrollbar: boolean;
 	enable_hide_shorts: boolean;
 	enable_hide_translate_comment: boolean;
@@ -364,6 +468,7 @@ export type configuration = {
 	enable_open_youtube_settings_on_hover: boolean;
 	enable_pausing_background_players: boolean;
 	enable_playback_speed_buttons: boolean;
+	enable_playlist_length: boolean;
 	enable_redirect_remover: boolean;
 	enable_remaining_time: boolean;
 	enable_remember_last_volume: boolean;
@@ -378,6 +483,7 @@ export type configuration = {
 	enable_video_history: boolean;
 	enable_volume_boost: boolean;
 	feature_menu_open_type: FeatureMenuOpenType;
+	forward_rewind_buttons_time: number;
 	language: AvailableLocales;
 	osd_display_color: OnScreenDisplayColor;
 	osd_display_hide_time: number;
@@ -387,7 +493,10 @@ export type configuration = {
 	osd_display_type: OnScreenDisplayType;
 	playback_buttons_speed: number;
 	player_quality: YoutubePlayerQualityLevel;
+	player_quality_fallback_strategy: PlayerQualityFallbackStrategy;
 	player_speed: number;
+	playlist_length_get_method: PlaylistLengthGetMethod;
+	playlist_watch_time_get_method: PlaylistWatchTimeGetMethod;
 	remembered_volumes: RememberedVolumes;
 	screenshot_format: ScreenshotFormat;
 	screenshot_save_as: ScreenshotType;
@@ -398,6 +507,7 @@ export type configuration = {
 	volume_adjustment_steps: number;
 	volume_boost_amount: number;
 	volume_boost_mode: VolumeBoostMode;
+	youtube_data_api_v3_key: string;
 };
 export type configurationKeys = keyof configuration;
 export type configurationId = Path<configuration>;
