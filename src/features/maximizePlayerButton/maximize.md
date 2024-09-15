@@ -72,6 +72,8 @@ export function updateProgressBarPositions() {
 10. hover progress bar: div.ytp-hover-progress
 11. play progress bar: div.ytp-play-progress
 12. fine scrubbing draggable preview element: div.ytp-fine-scrubbing-draggable
+13. chapter heat map
+14. fix sponsor block progress bar overlay Y position and size
 
 ## Things that have been implemented
 
@@ -80,6 +82,7 @@ export function updateProgressBarPositions() {
 - progress bar scrubber
 - chrome bottom controls
 - story board timestamp
+- chapter heat map
 
 ## Things that need to be implemented
 
@@ -90,3 +93,4 @@ export function updateProgressBarPositions() {
 - hover progress bar
 - play progress bar
 - fine scrubbing draggable preview element
+- fix sponsor block progress bar overlay Y position and size

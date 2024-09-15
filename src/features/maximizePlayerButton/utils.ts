@@ -31,6 +31,10 @@ function adjustPlayer(action: ModifyElementAction) {
 		{
 			className: "yte-maximized-storyboard-framepreview-timestamp",
 			element: document.querySelector("div.ytp-storyboard-framepreview-timestamp")
+		},
+		{
+			className: "yte-maximized-heat-map-chapter",
+			element: document.querySelector("div.ytp-heat-map-chapter")
 		}
 	];
 	modifyElementsClassList(action, elements);
@@ -79,8 +83,14 @@ export function maximizePlayer() {
 	([...leftControls.childNodes, ...rightControls.childNodes] as HTMLElement[]).forEach((node) => {
 		eventManager.addEventListener(
 			node,
-			"mouseover",
-			() => adjustTooltip("add", { className: "yte-maximized-tooltip", element: document.querySelector("div#movie_player > div.ytp-tooltip") }),
+			"mouseenter",
+			() =>
+				adjustTooltip("add", {
+					className: "yte-maximized-tooltip",
+					element: (() => {
+						return document.querySelector("div#movie_player > div.ytp-tooltip");
+					})()
+				}),
 			"maximizePlayerButton"
 		);
 	});
