@@ -490,6 +490,7 @@ export type configuration = {
 	enable_share_shortener: boolean;
 	enable_shorts_auto_scroll: boolean;
 	enable_skip_continue_watching: boolean;
+	enable_timestamp_peek: boolean;
 	enable_video_history: boolean;
 	enable_volume_boost: boolean;
 	feature_menu_open_type: FeatureMenuOpenType;
