@@ -31,6 +31,7 @@ import type {
 import type { SVGElementAttributes } from "./SVGElementAttributes";
 
 import { buttonNameToSettingName, featureToMultiButtonsMap, youtubePlayerQualityLevels } from "../types";
+import { commentsPanelSelector, engagementPanelVisibility, type EngagementPanelVisibility } from "../utils/constants";
 import { eventManager, type FeatureName } from "./EventManager";
 
 export const isStrictEqual = (value1: unknown) => (value2: unknown) => value1 === value2;
@@ -838,4 +839,22 @@ export function timeStringToSeconds(timeString: string): number {
 		seconds += parseInt(parts[i], 10) * Math.pow(60, i);
 	}
 	return seconds;
+}
+export function observeCommentsPanelVisibilityChange(cb: { [K in EngagementPanelVisibility]: () => void }): MutationObserver {
+	const observer = new MutationObserver((mutationList) => {
+		mutationList.forEach((mutation) => {
+			if (mutation.attributeName === "visibility") {
+				const target = mutation.target as HTMLElement;
+				if (!target) return;
+				const visibility = target.getAttribute("visibility");
+				if (!visibility) return;
+				if (!engagementPanelVisibility.includes(visibility)) return;
+				const castVisibility = visibility as EngagementPanelVisibility;
+				cb[castVisibility]();
+			}
+		});
+	});
+	const commentsPanel = document.querySelector(commentsPanelSelector) as Element;
+	observer.observe(commentsPanel, { attributeFilter: ["visibility"] });
+	return observer;
 }

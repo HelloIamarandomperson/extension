@@ -765,6 +765,14 @@ export default function Settings() {
 						title={t("settings.sections.miscellaneous.features.automaticallyDisableClosedCaptions.title")}
 						type="checkbox"
 					/>
+					<Setting
+						checked={settings.enable_timestamp_peek?.toString() === "true"}
+						id="enable_timestamp_peek"
+						label={t("settings.sections.miscellaneous.features.timestampPeek.label")}
+						onChange={setCheckboxOption("enable_timestamp_peek")}
+						title={t("settings.sections.miscellaneous.features.timestampPeek.title")}
+						type="checkbox"
+					/>
 				</SettingSection>
 				<SettingSection title={t("settings.sections.videoHistory.title")}>
 					<SettingTitle />

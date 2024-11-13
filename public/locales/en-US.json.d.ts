@@ -255,6 +255,10 @@ interface EnUS {
 						label: 'Skip "Video is paused. Continue watching?"';
 						title: "Skips the idle dialog that pauses video playback";
 					};
+					timestampPeek: {
+						label: "Timestamp Peek";
+						title: "Shows a preview of the video when you hover over a timestamp";
+					};
 				};
 				title: "Miscellaneous settings";
 			};

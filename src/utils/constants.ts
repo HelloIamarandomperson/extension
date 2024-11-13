@@ -218,3 +218,7 @@ export const configurationImportSchema: TypeToPartialZodSchema<
 export const DEV_MODE = process.env.__DEV__ === "true";
 export const ENABLE_SOURCE_MAP = DEV_MODE === true ? "inline" : false;
 export const YouTube_Enhancer_Public_Youtube_Data_API_V3_Key = "AIzaSyA_z2BR_HSfKsPvuttqjD_6AY60zgqbm5k";
+export const commentsPanelSelector = "ytd-engagement-panel-section-list-renderer[target-id='engagement-panel-comments-section']";
+export const commentsHeaderSelector = "ytd-item-section-renderer.ytd-comments div#header div#leading-section";
+export const engagementPanelVisibility = ["ENGAGEMENT_PANEL_VISIBILITY_HIDDEN", "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"] as const;
+export type EngagementPanelVisibility = (typeof engagementPanelVisibility)[number];

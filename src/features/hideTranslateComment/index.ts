@@ -1,16 +1,16 @@
 import type { Nullable } from "@/src/types";
 
+import { observeTranslateComment, translateButtonSelector } from "@/src/features/hideTranslateComment/utils";
+import { commentsHeaderSelector, commentsPanelSelector, type EngagementPanelVisibility } from "@/src/utils/constants";
 import {
-	type EngagementPanelVisibility,
+	isNewYouTubeVideoLayout,
+	modifyElementClassList,
 	observeCommentsPanelVisibilityChange,
-	observeTranslateComment,
-	translateButtonSelector
-} from "@/src/features/hideTranslateComment/utils";
-import { isNewYouTubeVideoLayout, modifyElementClassList, waitForAllElements, waitForSpecificMessage } from "@/src/utils/utilities";
+	waitForAllElements,
+	waitForSpecificMessage
+} from "@/src/utils/utilities";
 
 import "./index.css";
-export const commentsPanelSelector = "ytd-engagement-panel-section-list-renderer[target-id='engagement-panel-comments-section']";
-export const commentsHeaderSelector = "ytd-item-section-renderer.ytd-comments div#header div#leading-section";
 let translateCommentObserver: Nullable<MutationObserver> = null;
 let commentsPanelObserver: Nullable<MutationObserver> = null;
 type ObserverType = "commentsPanel" | "translateComment";
@@ -49,7 +49,17 @@ export async function enableHideTranslateComment() {
 			(commentsPanelElement.getAttribute("visibility") as EngagementPanelVisibility) === "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"
 		)
 			toggleHideTranslateCommentButtonsVisibility(false);
-		const observer = observeCommentsPanelVisibilityChange();
+		const observer = observeCommentsPanelVisibilityChange({
+			ENGAGEMENT_PANEL_VISIBILITY_EXPANDED: () => {
+				toggleHideTranslateCommentButtonsVisibility(false);
+				const observer = observeTranslateComment();
+				if (observer) setHideTranslateCommentObserver("translateComment", observer);
+			},
+			ENGAGEMENT_PANEL_VISIBILITY_HIDDEN: () => {
+				cleanUpHideTranslateCommentObserver("translateComment");
+				toggleHideTranslateCommentButtonsVisibility(false);
+			}
+		});
 		if (observer) setHideTranslateCommentObserver("commentsPanel", observer);
 	} else {
 		await waitForAllElements([commentsHeaderSelector]);

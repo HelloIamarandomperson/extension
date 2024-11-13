@@ -59,6 +59,7 @@ import adjustVolumeOnScrollWheel from "@/src/features/scrollWheelVolumeControl";
 import { disableShareShortener, enableShareShortener } from "@/src/features/shareShortener";
 import { disableShortsAutoScroll, enableShortsAutoScroll } from "@/src/features/shortsAutoScroll";
 import { enableSkipContinueWatching } from "@/src/features/skipContinueWatching";
+import { disableTimestampPeek, enableTimestampPeek } from "@/src/features/timestampPeek";
 import { promptUserToResumeVideo, setupVideoHistory } from "@/src/features/videoHistory";
 import volumeBoost, {
 	addVolumeBoostButton,
@@ -171,7 +172,8 @@ const enableFeatures = () => {
 			enableHideScrollBar(),
 			enableCustomCSS(),
 			enableDeepDarkCSS(),
-			enableHideOfficialArtistVideosFromHomePage()
+			enableHideOfficialArtistVideosFromHomePage(),
+			enableTimestampPeek()
 		]);
 		// Use a guard clause to reduce amount of times nesting code happens
 		if (shouldEnableFeaturesFuncReturn()) return;
@@ -299,6 +301,17 @@ window.addEventListener("DOMContentLoaded", function () {
 				}
 				if (!message) return;
 				switch (message.type) {
+					case "timestampPeekChange": {
+						const {
+							data: { timestampPeekEnabled }
+						} = message;
+						if (timestampPeekEnabled) {
+							await enableTimestampPeek();
+						} else {
+							disableTimestampPeek();
+						}
+						break;
+					}
 					case "hideOfficialArtistVideosFromHomePageChange": {
 						const {
 							data: { hideOfficialArtistVideosFromHomePageEnabled }
