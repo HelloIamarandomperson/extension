@@ -766,6 +766,14 @@ export default function Settings() {
 						type="checkbox"
 					/>
 					<Setting
+						checked={settings.enable_automatically_disable_ambient_mode?.toString() === "true"}
+						id="enable_automatically_disable_ambient_mode"
+						label={t("settings.sections.miscellaneous.features.automaticallyDisableAmbientMode.label")}
+						onChange={setCheckboxOption("enable_automatically_disable_ambient_mode")}
+						title={t("settings.sections.miscellaneous.features.automaticallyDisableAmbientMode.title")}
+						type="checkbox"
+					/>
+					<Setting
 						checked={settings.enable_timestamp_peek?.toString() === "true"}
 						id="enable_timestamp_peek"
 						label={t("settings.sections.miscellaneous.features.timestampPeek.label")}
@@ -1121,6 +1129,54 @@ export default function Settings() {
 						value={settings.forward_rewind_buttons_time}
 					/>
 				</SettingSection>
+				<SettingSection title={t("settings.sections.playlistLength.title")}>
+					<SettingTitle />
+					<Setting
+						checked={settings.enable_playlist_length?.toString() === "true"}
+						id="enable_playlist_length"
+						label={t("settings.sections.playlistLength.enable.label")}
+						onChange={setCheckboxOption("enable_playlist_length")}
+						title={t("settings.sections.playlistLength.enable.title")}
+						type="checkbox"
+					/>
+					<Setting
+						disabled={settings.enable_playlist_length?.toString() !== "true"}
+						id="playlist_length_get_method"
+						label={t("settings.sections.playlistLength.wayToGetLength.select.label")}
+						onChange={setValueOption("playlist_length_get_method")}
+						options={playlistLengthGetMethodOptions}
+						selectedOption={getSelectedOption("playlist_length_get_method")}
+						title={t("settings.sections.playlistLength.wayToGetLength.select.title")}
+						type="select"
+					/>
+					<Setting
+						disabled={settings.enable_playlist_length?.toString() !== "true"}
+						id="playlist_watch_time_get_method"
+						label={t("settings.sections.playlistLength.wayToGetWatchTime.select.label")}
+						onChange={setValueOption("playlist_watch_time_get_method")}
+						options={playlistWatchTimeGetMethodOptions}
+						selectedOption={getSelectedOption("playlist_watch_time_get_method")}
+						title={t("settings.sections.playlistLength.wayToGetWatchTime.select.title")}
+						type="select"
+					/>
+				</SettingSection>
+				<SettingSection title={t("settings.sections.youtubeDataApiV3Key.title")}>
+					<SettingTitle />
+					<Setting
+						id="youtube_data_api_v3_key"
+						input_type="password"
+						label={t("settings.sections.youtubeDataApiV3Key.input.label")}
+						onChange={setValueOption("youtube_data_api_v3_key")}
+						title={t("settings.sections.youtubeDataApiV3Key.input.title")}
+						type="text-input"
+						value={settings.youtube_data_api_v3_key}
+					/>
+					<fieldset className={cn("flex flex-row gap-1")}>
+						<Link className="ml-2" href="https://developers.google.com/youtube/v3/getting-started" target="_blank">
+							{t("settings.sections.youtubeDataApiV3Key.getApiKeyLinkText")}
+						</Link>
+					</fieldset>
+				</SettingSection>
 				<SettingSection title={t("settings.sections.youtubeDeepDark.title")}>
 					<SettingTitle />
 					<fieldset className={cn("flex flex-row gap-1")}>
@@ -1235,54 +1291,6 @@ export default function Settings() {
 						type="css-editor"
 						value={settings.custom_css_code}
 					/>
-				</SettingSection>
-				<SettingSection title={t("settings.sections.playlistLength.title")}>
-					<SettingTitle />
-					<Setting
-						checked={settings.enable_playlist_length?.toString() === "true"}
-						id="enable_playlist_length"
-						label={t("settings.sections.playlistLength.enable.label")}
-						onChange={setCheckboxOption("enable_playlist_length")}
-						title={t("settings.sections.playlistLength.enable.title")}
-						type="checkbox"
-					/>
-					<Setting
-						disabled={settings.enable_playlist_length?.toString() !== "true"}
-						id="playlist_length_get_method"
-						label={t("settings.sections.playlistLength.wayToGetLength.select.label")}
-						onChange={setValueOption("playlist_length_get_method")}
-						options={playlistLengthGetMethodOptions}
-						selectedOption={getSelectedOption("playlist_length_get_method")}
-						title={t("settings.sections.playlistLength.wayToGetLength.select.title")}
-						type="select"
-					/>
-					<Setting
-						disabled={settings.enable_playlist_length?.toString() !== "true"}
-						id="playlist_watch_time_get_method"
-						label={t("settings.sections.playlistLength.wayToGetWatchTime.select.label")}
-						onChange={setValueOption("playlist_watch_time_get_method")}
-						options={playlistWatchTimeGetMethodOptions}
-						selectedOption={getSelectedOption("playlist_watch_time_get_method")}
-						title={t("settings.sections.playlistLength.wayToGetWatchTime.select.title")}
-						type="select"
-					/>
-				</SettingSection>
-				<SettingSection title={t("settings.sections.youtubeDataApiV3Key.title")}>
-					<SettingTitle />
-					<Setting
-						id="youtube_data_api_v3_key"
-						input_type="password"
-						label={t("settings.sections.youtubeDataApiV3Key.input.label")}
-						onChange={setValueOption("youtube_data_api_v3_key")}
-						title={t("settings.sections.youtubeDataApiV3Key.input.title")}
-						type="text-input"
-						value={settings.youtube_data_api_v3_key}
-					/>
-					<fieldset className={cn("flex flex-row gap-1")}>
-						<Link className="ml-2" href="https://developers.google.com/youtube/v3/getting-started" target="_blank">
-							{t("settings.sections.youtubeDataApiV3Key.getApiKeyLinkText")}
-						</Link>
-					</fieldset>
 				</SettingSection>
 
 				<div className="sticky bottom-0 left-0 z-10 flex justify-between gap-1 bg-[#f5f5f5] p-2 dark:bg-[#181a1b]">
