@@ -84,7 +84,6 @@ import {
 	type YouTubePlayerDiv,
 	featureToMultiButtonsMap
 } from "@/src/types";
-import {enableHidePlaylist, disableHidePlaylist} from "@/src/features/Tester";
 import eventManager from "@/utils/EventManager";
 import {
 	browserColorLog,
@@ -173,8 +172,7 @@ const enableFeatures = () => {
 			enableHideScrollBar(),
 			enableCustomCSS(),
 			enableDeepDarkCSS(),
-			enableHideOfficialArtistVideosFromHomePage(),
-			enableHidePlaylist()
+			enableHideOfficialArtistVideosFromHomePage()
 		]);
 		// Use a guard clause to reduce amount of times nesting code happens
 		if (shouldEnableFeaturesFuncReturn()) return;
@@ -968,16 +966,6 @@ window.addEventListener("DOMContentLoaded", function () {
 					}
 					default: {
 						return;
-					}
-					case "hidePlaylistChange": {
-						const {
-							data: { hidePlaylistEnabled }
-						} = message;
-						if (hidePlaylistEnabled) {
-							await enableHidePlaylist();
-						} else {
-							disableHidePlaylist();
-						}
 					}
 				}
 			})();
